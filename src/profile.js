@@ -38,6 +38,7 @@ function savePost() {
 };
 //mostrando todos las publicaciones del usuario actual
 function chargePosts(userUID, muroPosts) {
+  muroPosts.innerHTML ='';
   firebase.database().ref('users/'+userUID+'/publicaciones')
   .on('child_added', function(snapshot) {
      var objPost = snapshot.val();
@@ -56,7 +57,7 @@ function chargePosts(userUID, muroPosts) {
        <button id=${snapshot.key + 'b'} onclick="editPost('${snapshot.key}','${userUID}','${objPost.usuario}','${objPost.optionValue}','${aux}','${snapshot.key + 'b'}')">Update</button>
        </div>
        `;
-       document.getElementById(snapshot.key).disabled = true;
+       // document.getElementById(snapshot.key).disabled = true;
      })
   });
 }
@@ -67,21 +68,51 @@ function removePost(idPost, userUID) {
  let mensaje = confirm("¿Deseas eliminar el POST");
  //Detectamos si el usuario acepto el mensaje
  if (mensaje) {
-   // alert("¡Gracias por aceptar!");
    console.log(idPost)
    console.log(userUID)
    let dbRefObjectUsersPosts = firebase.database().ref().child('users-posts')
    firebase.database().ref().child('users/' + userUID + '/publicaciones/' + idPost).remove();
-   // firebase.database().ref().child('posts/' + idPost).remove();
    muroPosts = document.getElementById('myFriendsPost');
    while (muroPosts.firstChild) muroPosts.removeChild(muroPosts.firstChild);
    chargePosts(userUID, muroPosts);
-   // alert('The user is deleted successfully!');
  }
  //Detectamos si el usuario denegó el mensaje
  else {
    alert("¡Haz denegado la eliminacion del post !");
  }
+}
+//editar pulicaciones
+function editPost(idPost, userUID, usuario, option, aux, btn) {
+ console.log("voy a editar")
+ const newUpdate = document.getElementById(idPost);
+ const boton = document.getElementById(btn);
+ boton.innerHTML = 'Guardar';
+ if (aux == 0) {
+   console.log("false")
+   newUpdate.disabled = false;
+   aux = 1;
+   console.log(aux)
+ } else {
+   console.log("true")
+   newUpdate.disabled = true;
+   aux = 0;
+ }
+ const nuevoPost = {
+   optionValue: option,
+   message: newUpdate.value
+   // usuario: usuario
+ };
+ console.log(nuevoPost)
+ var updatesUser = {};
+ var updatesPost = {};
+
+
+ updatesUser['users/' + userUID + '/publicaciones/' + idPost] = nuevoPost;
+ firebase.database().ref().update(updatesUser);
+ console.log("no funciona")
+ let muroPosts = document.getElementById('myPosts');
+ muroPosts.innerHTML = '';
+ chargePosts(userUID, muroPosts);
 }
 //cargar las Notificaciones
 function chargeNotifications() {
